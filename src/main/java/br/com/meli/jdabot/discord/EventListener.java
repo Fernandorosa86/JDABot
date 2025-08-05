@@ -5,6 +5,10 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.springframework.stereotype.Component;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.text.Normalizer;
+
 @Component
 public class EventListener extends ListenerAdapter {
 
@@ -14,26 +18,45 @@ public class EventListener extends ListenerAdapter {
         this.weatherService = weatherService;
     }
 
+    public static String removeAccents(String str) {
+        return Normalizer.normalize(str, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+    }
+
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
 
         if (event.getAuthor().isBot()) return;
 
-        String message = event.getMessage().getContentRaw().toLowerCase();
+        String rawMessage = event.getMessage().getContentRaw();
+        String message = removeAccents(rawMessage);
+
+
 
         if (message.startsWith("!ping")) {
             event.getChannel().sendMessage("🏓 pong!").queue();
-        } else if (message.matches(".*\\b(oi|olá|ola|opa|eai|e aí|eae|salve)\\b.*")) {
-            String greeting = generateGreeting();
-            event.getChannel().sendMessage("Olá " + event.getAuthor().getAsMention() + "! " + greeting).queue();
-        } else if (message.startsWith("!clima")) {
-            String[] parts = message.split(" ");
-            if (parts.length < 2) {
-                event.getChannel().sendMessage("Por favor, envie: `!clima <cep>`").queue();
-            } else {
-                String zipCode = parts[1].replaceAll("\\D", "");
-                String response = weatherService.getWeatherByZipCode(zipCode);
-                event.getChannel().sendMessage(response).queue();
+        } else {
+            Pattern p = Pattern.compile(".*\\b(oi|ola|opa|eai|e ai|eae|salve)\\b",
+                    Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+            Matcher m = p.matcher(message);
+            if (m.find()) {
+                String userWord = m.group();
+                event.getChannel().sendMessage(userWord + " " + event.getAuthor().getAsMention() + " " + generateGreeting()).queue();
+                return;
+            }
+
+            if (message.startsWith("!clima")) {
+                String[] parts = message.split(" ");
+                if (parts.length < 2) {
+                    event.getChannel().sendMessage("Por favor, envie: !clima <cep> \nEx: !clima 00000000").queue();
+                } else {
+                    event.getChannel().sendMessage(":hourglass_flowing_sand: Consultando Previsão...").queue(msg -> {
+                        String zipCode = parts[1].replaceAll("\\D", "");
+                        String response = weatherService.getWeatherByZipCode(zipCode);
+
+                        msg.editMessage(response).queue();
+                    });
+                }
             }
         }
     }
