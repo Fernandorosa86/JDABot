@@ -25,7 +25,8 @@ public class SlashCommandRegister {
                 Commands.slash("ping", "Testa o bot"),
                 Commands.slash("clima", "Consulta o clima pelo CEP")
                         .addOption(OptionType.STRING, "cep", "Digite o CEP", true),
-                Commands.slash("Questionario", "Seleciona questionários usando filtros")
+                Commands.slash("questionario", "Seleciona questionários usando filtros"),
+                Commands.slash("piada", "Te conto uma piada com botão 😂")
         ).queue();
     }
 }
