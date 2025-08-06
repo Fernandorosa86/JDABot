@@ -1,14 +1,17 @@
 package br.com.meli.jdabot.service;
 
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import java.text.Normalizer;
+
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import static br.com.meli.jdabot.util.AccentUtils.removeAccents;
 
 @Service
 public class WeatherService {
@@ -47,10 +50,7 @@ public class WeatherService {
             Map.entry("TO", "Tocantins")
     );
 
-    private String removeAccents(String input) {
-        return Normalizer.normalize(input, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");
-    }
+
 
     public String getWeatherByZipCode(String zipCode) {
         try {
