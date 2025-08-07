@@ -1,4 +1,4 @@
-package br.com.meli.jdabot.config;
+package br.com.meli.jdabot.discord.commands;
 
 
 import jakarta.annotation.PostConstruct;
